@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Bubble, Sender, Mermaid, CodeHighlighter } from '@ant-design/x'
 import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
-import Latex from '@ant-design/x-markdown/plugins/latex'
+import Latex from '@ant-design/x-markdown/plugins/Latex'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { Spin } from 'antd'
 import { throttle } from 'lodash'
