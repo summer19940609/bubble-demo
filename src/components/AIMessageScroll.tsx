@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { Bubble, Sender, Mermaid } from '@ant-design/x'
-import { XMarkdown } from '@ant-design/x-markdown'
+import { Bubble, Sender, Mermaid, CodeHighlighter } from '@ant-design/x'
+import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
 import Latex from '@ant-design/x-markdown/plugins/latex'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { Spin } from 'antd'
@@ -23,6 +23,22 @@ const AIMessageScroll: React.FC = () => {
   const isInitialMount = useRef(true)
   const shouldAutoScroll = useRef(true)
 
+  // 代码高亮组件
+  const Code: React.FC<ComponentProps> = (props) => {
+    const { className, children } = props
+    const lang = className?.match(/language-(\w+)/)?.[1] || ''
+
+    if (typeof children !== 'string') return null
+
+    // 如果是 mermaid 代码块，使用 Mermaid 组件
+    if (lang === 'mermaid') {
+      return <Mermaid>{children}</Mermaid>
+    }
+
+    // 其他代码使用 CodeHighlighter
+    return <CodeHighlighter lang={lang}>{children}</CodeHighlighter>
+  }
+
   // AI回复消息数组（Markdown格式）
   const aiResponseFragments = [
     `## 你好！\n\n我是AI助手，很高兴为你服务。`,
@@ -34,6 +50,11 @@ const AIMessageScroll: React.FC = () => {
     `## 数学公式示例\n\n这是一个行内公式：$E = mc^2$\n\n这是一个块级公式：\n\n$$\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}$$\n\n还有更多公式：\n\n$$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}$$`,
     `## 图片示例\n\n这是谷歌的Logo：\n\n![Google Logo](https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png)\n\n图片可以很好地展示内容！`,
     `## 综合示例\n\n包含公式：$f(x) = x^2 + 2x + 1$\n\n包含图片：\n\n![Google](https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png)\n\n包含图表：\n\n\`\`\`mermaid\npie title 数据分布\n    "类型A" : 42\n    "类型B" : 30\n    "类型C" : 28\n\`\`\``,
+    `## Python 代码示例\n\n这是一个计算斐波那契数列的函数：\n\n\`\`\`python\ndef fibonacci(n):\n    """\n    计算第n个斐波那契数\n    :param n: 位置（必须是正整数）\n    :return: 第n个斐波那契数的值\n    """\n    if n <= 0:\n        return 0\n    elif n == 1:\n        return 1\n    else:\n        a, b = 0, 1\n        for _ in range(2, n+1):\n            a, b = b, a + b\n        return b\n\n# 使用示例\nif __name__ == "__main__":\n    num = 10\n    print(f"第{num}个斐波那契数是: {fibonacci(num)}")\n\`\`\``,
+    `## JavaScript 代码示例\n\n这是一个简单的 React Hook 示例：\n\n\`\`\`javascript\nimport { useState, useEffect } from 'react';\n\nfunction useCounter(initialValue = 0) {\n  const [count, setCount] = useState(initialValue);\n  \n  useEffect(() => {\n    console.log(\`当前计数: \${count}\`);\n  }, [count]);\n  \n  const increment = () => setCount(count + 1);\n  const decrement = () => setCount(count - 1);\n  const reset = () => setCount(initialValue);\n  \n  return { count, increment, decrement, reset };\n}\n\`\`\``,
+    `## TypeScript 代码示例\n\n这是一个类型安全的函数示例：\n\n\`\`\`typescript\ninterface User {\n  id: number;\n  name: string;\n  email: string;\n}\n\nfunction getUserById(users: User[], id: number): User | undefined {\n  return users.find(user => user.id === id);\n}\n\nconst users: User[] = [\n  { id: 1, name: 'Alice', email: 'alice@example.com' },\n  { id: 2, name: 'Bob', email: 'bob@example.com' }\n];\n\nconst user = getUserById(users, 1);\nconsole.log(user?.name); // Alice\n\`\`\``,
+    `## Mermaid 流程图\n\n\`\`\`mermaid\ngraph TD\n    A[开始] --> B{判断条件}\n    B -->|是| C[执行操作1]\n    B -->|否| D[执行操作2]\n    C --> E[结束]\n    D --> E\n\`\`\``,
+    `## Mermaid 序列图\n\n\`\`\`mermaid\nsequenceDiagram\n    participant 用户\n    participant AI\n    用户->>AI: 发送消息\n    AI->>AI: 处理消息\n    AI->>用户: 返回回复\n\`\`\``,
   ]
 
   // 初始化一些消息
@@ -183,6 +204,7 @@ const AIMessageScroll: React.FC = () => {
                 <XMarkdown
                   config={{ extensions: Latex() }}
                   paragraphTag="div"
+                  components={{ code: Code }}
                 >
                   {message.content}
                 </XMarkdown>
