@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { Bubble } from '@ant-design/x'
+import { Bubble, Sender } from '@ant-design/x'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { Spin } from 'antd'
 import { throttle } from 'lodash'
@@ -21,7 +21,7 @@ const AIMessageScroll: React.FC = () => {
   const isInitialMount = useRef(true)
   const shouldAutoScroll = useRef(true)
 
-  // 模拟AI回复的文本片段
+  // AI回复消息数组
   const aiResponseFragments = [
     '你好！',
     '我是AI助手，',
@@ -105,28 +105,43 @@ const AIMessageScroll: React.FC = () => {
     }
   }, [loadMoreMessages])
 
-  // 模拟实时AI消息流式输出
-  useEffect(() => {
-    const roles: ('user' | 'assistant')[] = ['user', 'assistant']
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        // 30%概率添加新消息
-        const role = roles[Math.floor(Math.random() * roles.length)]
-        const newMessage: Message = {
-          id: `${role}-${Date.now()}`,
-          role,
-          content: role === 'user'
-            ? `随机新消息：用户消息 ${messages.length + 1}`
-            : `随机新消息：${aiResponseFragments[messages.length % aiResponseFragments.length]}`,
+
+  const [inputValue, setInputValue] = useState('')
+
+  // 处理发送消息
+  const handleSend = useCallback(() => {
+    if (!inputValue.trim()) return
+
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: inputValue.trim(),
+      timestamp: Date.now(),
+    }
+    
+    shouldAutoScroll.current = true
+    setMessages((prev) => {
+      const updated = [...prev, userMessage]
+      
+      // 模拟AI回复，延迟一点时间
+      setTimeout(() => {
+        // 从数组中随机选择一个
+        const randomFragment = aiResponseFragments[Math.floor(Math.random() * aiResponseFragments.length)]
+        const aiMessage: Message = {
+          id: `assistant-${Date.now()}`,
+          role: 'assistant',
+          content: `【模拟回复消息】${randomFragment}`,
           timestamp: Date.now(),
         }
-        shouldAutoScroll.current = true // 新消息到达时自动滚动
-        setMessages((prev) => [...prev, newMessage])
-      }
-    }, 3000)
-
-    return () => clearInterval(interval)
-  }, [messages.length, aiResponseFragments])
+        shouldAutoScroll.current = true
+        setMessages((prevMessages) => [...prevMessages, aiMessage])
+      }, 500)
+      
+      return updated
+    })
+    
+    setInputValue('') // 清空输入框
+  }, [inputValue])
 
   // 自动滚动到底部（仅在新消息到达时）
   useEffect(() => {
@@ -178,6 +193,13 @@ const AIMessageScroll: React.FC = () => {
             }))}
           />
         </InfiniteScroll>
+      </div>
+      <div className="ai-message-scroll-footer">
+        <Sender
+          value={inputValue}
+          onChange={setInputValue}
+          onSubmit={handleSend}
+        />
       </div>
     </div>
   )

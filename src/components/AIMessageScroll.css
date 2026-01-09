@@ -70,3 +70,9 @@
   color: #999;
   font-size: 12px;
 }
+
+.ai-message-scroll-footer {
+  padding: 12px 16px;
+  border-top: 1px solid #f0f0f0;
+  background: white;
+}
