@@ -20,8 +20,6 @@ const AIMessageScroll: React.FC = () => {
   const [hasMore, setHasMore] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const isInitialMount = useRef(true)
-  const shouldAutoScroll = useRef(true)
 
   // 代码高亮组件
   const Code: React.FC<ComponentProps> = (props) => {
@@ -63,13 +61,6 @@ const AIMessageScroll: React.FC = () => {
     const initialMessages: Message[] = initialMessagesData as Message[]
 
     setMessages(initialMessages)
-    // 初始化后滚动到底部
-    setTimeout(() => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-        isInitialMount.current = false
-      }
-    }, 100)
   }, [])
 
   // 模拟加载更多历史消息（向上滚动时触发）
@@ -77,7 +68,6 @@ const AIMessageScroll: React.FC = () => {
     if (isLoading) return
 
     setIsLoading(true)
-    shouldAutoScroll.current = false // 加载历史消息时不自动滚动
 
     setTimeout(() => {
       setMessages((prev) => {
@@ -140,7 +130,6 @@ const AIMessageScroll: React.FC = () => {
       timestamp: Date.now(),
     }
 
-    shouldAutoScroll.current = true
     setMessages((prev) => {
       const updated = [...prev, userMessage]
 
@@ -154,7 +143,6 @@ const AIMessageScroll: React.FC = () => {
           content: `【模拟回复markdown消息，随机一种】\n ${randomFragment}`,
           timestamp: Date.now(),
         }
-        shouldAutoScroll.current = true
         setMessages((prevMessages) => [...prevMessages, aiMessage])
       }, 500)
 
@@ -164,12 +152,6 @@ const AIMessageScroll: React.FC = () => {
     setInputValue('') // 清空输入框
   }, [inputValue])
 
-  // 自动滚动到底部（仅在新消息到达时）
-  useEffect(() => {
-    if (scrollRef.current && (shouldAutoScroll.current || isInitialMount.current)) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
-  }, [messages])
 
   return (
     <div className="ai-message-scroll-container">
@@ -223,6 +205,7 @@ const AIMessageScroll: React.FC = () => {
                 },
               },
             }))}
+            autoScroll={true}
           />
         </InfiniteScroll>
       </div>
