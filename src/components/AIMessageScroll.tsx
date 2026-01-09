@@ -200,17 +200,18 @@ const AIMessageScroll: React.FC = () => {
               key: message.id,
               role: message.role,
               placement: message.role === 'user' ? 'end' : 'start',
-              content: message.role === 'assistant' ? (
-                <XMarkdown
-                  config={{ extensions: Latex() }}
-                  paragraphTag="div"
-                  components={{ code: Code }}
-                >
-                  {message.content}
-                </XMarkdown>
-              ) : (
-                message.content
-              ),
+              content: message.content,
+              contentRender: message.role === 'assistant' 
+                ? (content: string) => (
+                    <XMarkdown
+                      config={{ extensions: Latex() }}
+                      paragraphTag="div"
+                      components={{ code: Code }}
+                    >
+                      {content}
+                    </XMarkdown>
+                  )
+                : undefined,
               header: new Date(message.timestamp).toLocaleTimeString('zh-CN', {
                 hour: '2-digit',
                 minute: '2-digit',
