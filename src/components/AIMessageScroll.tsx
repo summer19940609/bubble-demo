@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { Bubble, Sender } from '@ant-design/x'
+import { Bubble, Sender, Mermaid } from '@ant-design/x'
+import { XMarkdown } from '@ant-design/x-markdown'
+import Latex from '@ant-design/x-markdown/plugins/latex'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { Spin } from 'antd'
 import { throttle } from 'lodash'
@@ -21,26 +23,24 @@ const AIMessageScroll: React.FC = () => {
   const isInitialMount = useRef(true)
   const shouldAutoScroll = useRef(true)
 
-  // AI回复消息数组
+  // AI回复消息数组（Markdown格式）
   const aiResponseFragments = [
-    '你好！',
-    '我是AI助手，',
-    '很高兴为你服务。',
-    '我可以帮助你解答各种问题，',
-    '包括编程、',
-    '数学、',
-    '科学等各个领域。',
-    '如果你有任何问题，',
-    '随时可以问我。',
-    '我会尽力为你提供准确的答案。',
-    '让我们一起探索知识的海洋吧！',
+    `## 你好！\n\n我是AI助手，很高兴为你服务。`,
+    `### 提示\n\n我可以帮助你解答各种问题，包括：\n\n- 编程\n- 数学\n- 科学\n\n随时可以问我！`,
+    `**重要提示**\n\n我会尽力为你提供准确的答案。\n\n让我们一起探索知识的海洋吧！`,
+    `\`\`\`javascript\nconsole.log("Hello, World!");\n\`\`\`\n\n这是一段代码示例。`,
+    `## 功能说明\n\n1. 支持多种格式\n2. 实时响应\n3. 智能回复\n\n[了解更多](https://example.com)`,
+    `> 这是一条引用消息\n\n**加粗文本** 和 *斜体文本* 都可以正常显示。`,
+    `## 数学公式示例\n\n这是一个行内公式：$E = mc^2$\n\n这是一个块级公式：\n\n$$\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}$$\n\n还有更多公式：\n\n$$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}$$`,
+    `## 图片示例\n\n这是谷歌的Logo：\n\n![Google Logo](https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png)\n\n图片可以很好地展示内容！`,
+    `## 综合示例\n\n包含公式：$f(x) = x^2 + 2x + 1$\n\n包含图片：\n\n![Google](https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png)\n\n包含图表：\n\n\`\`\`mermaid\npie title 数据分布\n    "类型A" : 42\n    "类型B" : 30\n    "类型C" : 28\n\`\`\``,
   ]
 
   // 初始化一些消息
   useEffect(() => {
     // 从JSON文件读取固定的10条消息
     const initialMessages: Message[] = initialMessagesData as Message[]
-    
+
     setMessages(initialMessages)
     // 初始化后滚动到底部
     setTimeout(() => {
@@ -57,11 +57,11 @@ const AIMessageScroll: React.FC = () => {
 
     setIsLoading(true)
     shouldAutoScroll.current = false // 加载历史消息时不自动滚动
-    
+
     setTimeout(() => {
       setMessages((prev) => {
-        const oldestTimestamp = prev.length > 0 
-          ? Math.min(...prev.map(m => m.timestamp)) 
+        const oldestTimestamp = prev.length > 0
+          ? Math.min(...prev.map(m => m.timestamp))
           : Date.now()
 
         const roles: ('user' | 'assistant')[] = ['user', 'assistant']
@@ -70,11 +70,11 @@ const AIMessageScroll: React.FC = () => {
           const role = roles[Math.floor(Math.random() * roles.length)]
           // 历史消息的时间戳应该更早
           const timestamp = oldestTimestamp - (20 - i) * 1000 - 10000
-          
+
           return {
             id: `${role}-history-${Date.now()}-${i}`,
             role,
-            content: role === 'user' 
+            content: role === 'user'
               ? `消息用户${i + 1}`
               : `消息助手${i + 1}`,
             timestamp,
@@ -118,11 +118,11 @@ const AIMessageScroll: React.FC = () => {
       content: inputValue.trim(),
       timestamp: Date.now(),
     }
-    
+
     shouldAutoScroll.current = true
     setMessages((prev) => {
       const updated = [...prev, userMessage]
-      
+
       // 模拟AI回复，延迟一点时间
       setTimeout(() => {
         // 从数组中随机选择一个
@@ -130,16 +130,16 @@ const AIMessageScroll: React.FC = () => {
         const aiMessage: Message = {
           id: `assistant-${Date.now()}`,
           role: 'assistant',
-          content: `【模拟回复消息】${randomFragment}`,
+          content: `【模拟回复markdown消息，随机一种】\n ${randomFragment}`,
           timestamp: Date.now(),
         }
         shouldAutoScroll.current = true
         setMessages((prevMessages) => [...prevMessages, aiMessage])
       }, 500)
-      
+
       return updated
     })
-    
+
     setInputValue('') // 清空输入框
   }, [inputValue])
 
@@ -179,7 +179,16 @@ const AIMessageScroll: React.FC = () => {
               key: message.id,
               role: message.role,
               placement: message.role === 'user' ? 'end' : 'start',
-              content: message.content,
+              content: message.role === 'assistant' ? (
+                <XMarkdown
+                  config={{ extensions: Latex() }}
+                  paragraphTag="div"
+                >
+                  {message.content}
+                </XMarkdown>
+              ) : (
+                message.content
+              ),
               header: new Date(message.timestamp).toLocaleTimeString('zh-CN', {
                 hour: '2-digit',
                 minute: '2-digit',
