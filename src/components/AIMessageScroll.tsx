@@ -3,7 +3,6 @@ import { Bubble, Sender, Mermaid, CodeHighlighter } from '@ant-design/x'
 import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
 import Latex from '@ant-design/x-markdown/plugins/Latex'
 import InfiniteScroll from 'react-infinite-scroll-component'
-import { Spin } from 'antd'
 import { throttle } from 'lodash'
 import initialMessagesData from '../data/initialMessages.json'
 import './AIMessageScroll.css'
@@ -65,6 +64,7 @@ const AIMessageScroll: React.FC = () => {
 
   // 模拟加载更多历史消息（向上滚动时触发）
   const loadMoreMessagesBase = useCallback(() => {
+    console.log('load data');
     if (isLoading) return
 
     setIsLoading(true)
@@ -100,12 +100,12 @@ const AIMessageScroll: React.FC = () => {
         return [...newMessages, ...prev]
       })
       setIsLoading(false)
-    }, 1000)
+    }, 100)
   }, [isLoading])
 
-  // 使用节流，500ms 内只允许执行一次
+  // 使用节流
   const loadMoreMessages = useMemo(
-    () => throttle(loadMoreMessagesBase, 500),
+    () => throttle(loadMoreMessagesBase, 200),
     [loadMoreMessagesBase]
   )
 
@@ -163,18 +163,14 @@ const AIMessageScroll: React.FC = () => {
         ref={scrollRef}
         className="ai-message-scroll-content"
       >
+        {/* @ts-ignore */}
         <InfiniteScroll
           dataLength={messages.length}
           next={loadMoreMessages}
           hasMore={hasMore}
-          loader={
-            <div className="scroll-loader">
-              <Spin size="small" />
-              <span>加载历史消息中...</span>
-            </div>
-          }
           scrollableTarget="scrollableDiv"
           inverse={true}
+          scrollThreshold="100px"
           style={{ display: 'flex', flexDirection: 'column-reverse' }}
         >
           <Bubble.List
