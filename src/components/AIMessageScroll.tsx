@@ -105,7 +105,7 @@ const AIMessageScroll: React.FC = () => {
 
   // 使用节流
   const loadMoreMessages = useMemo(
-    () => throttle(loadMoreMessagesBase, 200),
+    () => throttle(loadMoreMessagesBase, 100),
     [loadMoreMessagesBase]
   )
 
