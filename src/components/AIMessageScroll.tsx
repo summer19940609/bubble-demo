@@ -36,6 +36,17 @@ const AIMessageScroll: React.FC = () => {
     return <CodeHighlighter lang={lang}>{children}</CodeHighlighter>
   }
 
+  // Markdown内容渲染函数
+  const renderMarkdownContent = (content: string) => (
+    <XMarkdown
+      config={{ extensions: Latex() }}
+      paragraphTag="div"
+      components={{ code: Code }}
+    >
+      {content}
+    </XMarkdown>
+  )
+
   // AI回复消息数组（Markdown格式）
   const aiResponseFragments = [
     `## 你好！\n\n我是AI助手，很高兴为你服务。`,
@@ -179,17 +190,7 @@ const AIMessageScroll: React.FC = () => {
               role: message.role,
               placement: message.role === 'user' ? 'end' : 'start',
               content: message.content,
-              contentRender: message.role === 'assistant' 
-                ? (content: string) => (
-                    <XMarkdown
-                      config={{ extensions: Latex() }}
-                      paragraphTag="div"
-                      components={{ code: Code }}
-                    >
-                      {content}
-                    </XMarkdown>
-                  )
-                : undefined,
+              contentRender: message.role === 'assistant' ? renderMarkdownContent : undefined,
               header: new Date(message.timestamp).toLocaleTimeString('zh-CN', {
                 hour: '2-digit',
                 minute: '2-digit',
