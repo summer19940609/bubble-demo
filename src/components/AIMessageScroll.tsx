@@ -4,6 +4,7 @@ import XMarkdown, { type ComponentProps } from '@ant-design/x-markdown'
 import Latex from '@ant-design/x-markdown/plugins/Latex'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { throttle } from 'lodash'
+import dayjs from 'dayjs'
 import initialMessagesData from '../data/initialMessages.json'
 import './AIMessageScroll.css'
 
@@ -191,11 +192,7 @@ const AIMessageScroll: React.FC = () => {
               placement: message.role === 'user' ? 'end' : 'start',
               content: message.content,
               contentRender: message.role === 'assistant' ? renderMarkdownContent : undefined,
-              header: new Date(message.timestamp).toLocaleTimeString('zh-CN', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-              }),
+              header: dayjs(message.timestamp).format('HH:mm:ss'),
               styles: {
                 content: {
                   backgroundColor: message.role === 'user' ? '#f3f3f3' : '#e6ffe6',
