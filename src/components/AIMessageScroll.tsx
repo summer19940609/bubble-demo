@@ -162,8 +162,12 @@ const AIMessageScroll: React.FC = () => {
     })
 
     setInputValue('') // 清空输入框
-  }, [inputValue])
 
+    // 滚动到最新位置
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0
+    }
+  }, [inputValue])
 
   return (
     <div className="ai-message-scroll-container">
@@ -176,6 +180,7 @@ const AIMessageScroll: React.FC = () => {
         className="ai-message-scroll-content"
       >
         {/* @ts-ignore */}
+        <div style={{ flex: 1 }}></div>
         <InfiniteScroll
           dataLength={messages.length}
           next={loadMoreMessages}
